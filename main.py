@@ -1,7 +1,5 @@
 import argparse
-import yadisk
 
-from data import TOKEN
 from processor import Processor
 
 parser = argparse.ArgumentParser()
@@ -10,9 +8,6 @@ namespace = parser.parse_args()
 
 
 def main():
-    y = yadisk.YaDisk(token=TOKEN)
-    # Проверяет, валиден ли токен
-    print(y.check_token())
     processor = Processor(namespace.path)
     processor.get_files()
 
