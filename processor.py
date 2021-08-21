@@ -1,9 +1,10 @@
 import os
+import time
+import requests
+import yadisk
 from datetime import datetime
 
-import yadisk
-
-from data import TOKEN
+from data import TOKEN, BOT_TOKEN, CHAT_ID
 
 # change_date = os.stat(f"{address}/{file}").st_mtime
 # print(file, datetime.utcfromtimestamp(int(change_date)).strftime('%Y-%m-%d %H:%M:%S'))
@@ -14,6 +15,8 @@ class Processor:
     def __init__(self, path):
         self.path = path
         self.__yadisk = yadisk.YaDisk(token=TOKEN)
+        self.report_url = "https://api.telegram.org/bot{}/sendMessage?chat_id={}&text={}"
+        self.count = 0
 
     @property
     def yadisk(self):
@@ -27,11 +30,10 @@ class Processor:
 
     def run(self):
         self._prepare_upload()
+        self.send_report()
 
     def _prepare_upload(self):
         for address, dirs, files in os.walk(self.path):
-            print(f"Address: {address}, dirs: {dirs}, files: {files}")
-            print()
             if not files:
                 continue
 
@@ -41,7 +43,7 @@ class Processor:
                 try:
                     self.yadisk.mkdir(f"backup/{catalog}")
                 except yadisk.exceptions.DirectoryExistsError:
-                    print("Папка существует")
+                    pass
             for file in files:
                 dst = catalog if catalog != current_dir else None
                 dst_path = f"backup/{dst}/{file}" if dst is not None else f"backup/{file}"
@@ -51,7 +53,13 @@ class Processor:
         try:
             self.yadisk.upload(f"{address}/{file}", dst_path)
         except yadisk.exceptions.PathExistsError:
-            print("File Exists")
             self.yadisk.remove(dst_path, permanently=True)
             self.yadisk.upload(f"{address}/{file}", dst_path)
-        print(f"Файл {file} загружен в {dst_path}")
+        self.count += 1
+
+    def send_report(self):
+        tmp = f"Загрузка завершена. Было добавлено {self.count} файлов."
+        r = requests.get(self.report_url.format(BOT_TOKEN, CHAT_ID, tmp)).json()
+        if not r["ok"]:
+            time.sleep(2)
+            requests.get(self.report_url.format(BOT_TOKEN, CHAT_ID, tmp))
