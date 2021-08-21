@@ -29,8 +29,9 @@ class Processor:
         print()
 
     def run(self):
-        self._prepare_upload()
         self.send_report()
+        self._prepare_upload()
+        self.send_report(start=False)
 
     def _prepare_upload(self):
         for address, dirs, files in os.walk(self.path):
@@ -53,12 +54,13 @@ class Processor:
         try:
             self.yadisk.upload(f"{address}/{file}", dst_path)
         except yadisk.exceptions.PathExistsError:
+            # Удаляем старый файл и загружаем новый
             self.yadisk.remove(dst_path, permanently=True)
             self.yadisk.upload(f"{address}/{file}", dst_path)
         self.count += 1
 
-    def send_report(self):
-        tmp = f"Загрузка завершена. Было добавлено {self.count} файлов."
+    def send_report(self, start=True):
+        tmp = "Загрузка файлов началась." if start else f"Загрузка завершена. Было добавлено {self.count} файлов."
         r = requests.get(self.report_url.format(BOT_TOKEN, CHAT_ID, tmp)).json()
         if not r["ok"]:
             time.sleep(2)
