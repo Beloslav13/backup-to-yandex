@@ -11,5 +11,6 @@
 И в файле записать:
 
 `*/1 * * * * { /home/beloslav/PycharmProjects/backup-to-yandex/venv/bin/python /home/beloslav/PycharmProjects/backup-to-yandex/main.py /home/beloslav/Документы/job ; }`
+
 Первый аргумент это путь до виртуального окружения, второй путь до исполняемого файла, третий это аргумент самого скрипта,
 путь до католога с файлами которые будут выгружена на Яндекс.Диск
