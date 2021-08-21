@@ -9,7 +9,7 @@ namespace = parser.parse_args()
 
 def main():
     processor = Processor(namespace.path)
-    processor.get_files()
+    processor.run()
 
 
 if __name__ == '__main__':
